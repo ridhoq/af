@@ -3,6 +3,9 @@ name = "af"
 version = "0.0.1"
 authors = ["Ridwan Hoq <ridhoq@users.noreply.github.com>"]
 edition = "2018"
+description = "A (http) fetch CLI 😀👍🏽"
+license = "MIT"
+repository = "https://github.com/ridhoq/af"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

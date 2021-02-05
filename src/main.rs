@@ -1,16 +1,26 @@
-use hyper::{body::HttpBody as _, Client, http::Uri};
+use hyper::{body::HttpBody as _, Client};
+use http::{Method, Uri, method::InvalidMethod};
 use hyper_tls::HttpsConnector;
 use structopt::StructOpt;
 use tokio::io::{self, AsyncWriteExt as _};
 
+fn parse_method(src: &str) -> Result<Method, InvalidMethod> {
+    Method::from_bytes(src.as_bytes())
+}
+
 #[derive(StructOpt)]
+/// A (http) fetch CLI 😀👍
 struct Cli {
-    // The URI to fetch
-    uri: Uri
+    /// HTTP method
+    #[structopt(parse(try_from_str = parse_method))]
+    method: Option<Method>,
+    /// The URI to fetch
+    #[structopt()]
+    uri: Uri,
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>>{
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::from_args();
 
     // Set up the HTTPS connector with the client

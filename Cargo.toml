@@ -1,6 +1,6 @@
 [package]
 name = "af"
-version = "0.0.1"
+version = "0.0.3"
 authors = ["Ridwan Hoq <ridhoq@users.noreply.github.com>"]
 edition = "2018"
 description = "A (http) fetch CLI 😀👍🏽"
@@ -10,6 +10,7 @@ repository = "https://github.com/ridhoq/af"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+http = "0.2.2"
 hyper = { version = "0.14", features = ["full"] }
 hyper-tls = "0.5.0"
 structopt = "0.3.21"

@@ -1,11 +1,10 @@
 use std::error;
 use std::fmt;
 
+use clap::{AppSettings, Clap};
 use http::{Method, Uri};
 use hyper::{body::HttpBody as _, Client, Request};
 use hyper_tls::HttpsConnector;
-use structopt::clap::AppSettings;
-use structopt::StructOpt;
 use tokio::io::{self, AsyncWriteExt as _};
 
 #[derive(Debug, Clone)]
@@ -33,28 +32,32 @@ fn parse_method(src: &str) -> Result<Method, InvalidHttpMethodError> {
     }
 }
 
-#[derive(StructOpt, Debug)]
-#[structopt(setting = AppSettings::AllowMissingPositional)]
+#[derive(Clap, Debug)]
+#[clap(setting = AppSettings::AllowMissingPositional)]
 /// A (http) fetch CLI 😀👍
 struct Cli {
     /// HTTP method. If no HTTP method is provided, GET is used by default
-    #[structopt(name = "METHOD", index = 1, default_value = "GET", parse(try_from_str = parse_method))]
+    #[clap(name = "METHOD", index = 1, default_value = "GET", parse(try_from_str = parse_method))]
     method: Method,
 
     /// URI to fetch
-    #[structopt(name = "URI", index = 2, required = true, parse(try_from_str))]
+    #[clap(name = "URI", index = 2, required = true, parse(try_from_str))]
     uri: Uri,
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn error::Error>> {
-    let args = Cli::from_args();
+    let args = Cli::parse();
 
     // Set up the HTTPS connector with the client
     let https = HttpsConnector::new();
     let client = Client::builder().build::<_, hyper::Body>(https);
 
     let req = Request::builder()
+        .header(
+            "User-Agent",
+            format!("{} {}", clap::crate_name!(), clap::crate_version!()),
+        )
         .method(args.method)
         .uri(args.uri)
         // TODO: couldn't figure out how to not pass a body with the Request::builder

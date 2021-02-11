@@ -29,14 +29,14 @@ fn parse_method(src: &str) -> Result<Method, InvalidHttpMethodError> {
 }
 
 #[derive(Clap, Debug)]
-#[clap(setting = AppSettings::AllowMissingPositional)]
+#[clap(version = clap::crate_version!(), setting = AppSettings::AllowMissingPositional)]
 /// A (http) fetch CLI 😀👍
 pub struct Opts {
     /// HTTP method. If no HTTP method is provided, GET is used by default
     #[clap(name = "METHOD", index = 1, default_value = "GET", parse(try_from_str = parse_method))]
     pub method: Method,
 
-    /// URI to fetch
+    /// URL to fetch
     #[clap(name = "URL", index = 2, required = true, parse(try_from_str))]
     pub url: Url,
 }

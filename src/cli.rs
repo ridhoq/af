@@ -29,7 +29,11 @@ fn parse_method(src: &str) -> Result<Method, InvalidHttpMethodError> {
 }
 
 #[derive(Clap, Debug)]
-#[clap(version = clap::crate_version!(), setting = AppSettings::AllowMissingPositional)]
+#[clap(
+    override_usage = "af [METHOD] <URL>",
+    setting = AppSettings::AllowMissingPositional,
+    version = clap::crate_version!()
+)]
 /// A (http) fetch CLI 😀👍
 pub struct Opts {
     /// HTTP method. If no HTTP method is provided, GET is used by default

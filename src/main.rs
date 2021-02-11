@@ -2,10 +2,9 @@ use std::error;
 use std::fmt;
 
 use clap::{AppSettings, Clap};
-use http::{Method, Uri};
-use hyper::{body::HttpBody as _, Client, Request};
-use hyper_tls::HttpsConnector;
+use reqwest::{Client, Method, Url};
 use tokio::io::{self, AsyncWriteExt as _};
+use reqwest::redirect::Policy;
 
 #[derive(Debug, Clone)]
 struct InvalidHttpMethodError;
@@ -41,39 +40,37 @@ struct Cli {
     method: Method,
 
     /// URI to fetch
-    #[clap(name = "URI", index = 2, required = true, parse(try_from_str))]
-    uri: Uri,
+    #[clap(name = "URL", index = 2, required = true, parse(try_from_str))]
+    url: Url,
 }
+
+fn get_user_agent() -> String {
+    format!("{} {}", clap::crate_name!(), clap::crate_version!())
+}
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn error::Error>> {
     let args = Cli::parse();
+    
+    // build out client
+    let client = Client::builder()
+        .user_agent(get_user_agent())
+        // by default, don't follow redirects
+        // TODO: make this a CLI arg
+        .redirect(Policy::none())
+        .build()?;
 
-    // Set up the HTTPS connector with the client
-    let https = HttpsConnector::new();
-    let client = Client::builder().build::<_, hyper::Body>(https);
-
-    let req = Request::builder()
-        .header(
-            "User-Agent",
-            format!("{} {}", clap::crate_name!(), clap::crate_version!()),
-        )
-        .method(args.method)
-        .uri(args.uri)
-        // TODO: couldn't figure out how to not pass a body with the Request::builder
-        // TODO: pass in a real body when doing POST/PUT/etc
-        .body(hyper::Body::from(""))
-        .unwrap();
-
-    let mut res = client.request(req).await?;
+    let req = client.request(args.method, &args.url.to_string());
+    let mut res = req.send().await?;
 
     println!("Response: {}", res.status());
     println!("Headers: {:#?}\n", res.headers());
 
     // Stream the body, writing each chunk to stdout as we get it
     // (instead of buffering and printing at the end).
-    while let Some(next) = res.data().await {
-        let chunk = next?;
+    while let Some(next) = res.chunk().await? {
+        let chunk = next;
         io::stdout().write_all(&chunk).await?;
     }
 

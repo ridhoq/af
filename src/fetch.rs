@@ -1,6 +1,6 @@
 use anyhow::Result;
 use reqwest::redirect::Policy;
-use reqwest::Client;
+use reqwest::{Client};
 use tokio::io::{self, AsyncWriteExt as _};
 
 use crate::cli::Opts;
@@ -14,11 +14,11 @@ pub async fn fetch(args: Opts) -> Result<()> {
     let client = Client::builder()
         .user_agent(get_user_agent())
         // by default, don't follow redirects
-        // TODO: make this a CLI arg
         .redirect(Policy::none())
         .build()?;
 
-    let req = client.request(args.method, &args.url.to_string());
+    let req = client.request(args.method, &args.url.to_string()).body(" ");
+
     let mut res = req.send().await?;
 
     println!("Response: {}", res.status());

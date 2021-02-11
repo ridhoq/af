@@ -1,6 +1,6 @@
 use anyhow::Result;
 use reqwest::redirect::Policy;
-use reqwest::{Client};
+use reqwest::{Client, Method};
 use tokio::io::{self, AsyncWriteExt as _};
 
 use crate::cli::Opts;
@@ -17,7 +17,15 @@ pub async fn fetch(args: Opts) -> Result<()> {
         .redirect(Policy::none())
         .build()?;
 
-    let req = client.request(args.method, &args.url.to_string()).body(" ");
+    // TODO: improve body handling
+    let mut body = "";
+    if args.method == Method::POST || args.method == Method::PUT {
+        body = " ";
+    }
+
+    let req = client
+        .request(args.method, &args.url.to_string())
+        .body(body);
 
     let mut res = req.send().await?;
 
